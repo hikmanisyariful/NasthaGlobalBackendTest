@@ -13,13 +13,11 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      MataKuliah.belongsTo(models.Mahasiswa)
       MataKuliah.belongsToMany(models.Mahasiswa, { through: models.DataNilai })
     }
   };
   MataKuliah.init({
-    name: DataTypes.STRING,
-    IdMahasiswa: DataTypes.INTEGER
+    name: DataTypes.STRING
   }, {
       sequelize,
       modelName: 'MataKuliah',

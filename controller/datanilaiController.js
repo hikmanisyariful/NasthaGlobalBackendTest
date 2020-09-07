@@ -46,21 +46,39 @@ class DataNilaiController {
       }
     })
       .then(data => {
-        res.status(200).json(data[1][0])
+
+        res.status(200).json({
+          message: "Data berhasil dihapus"
+        })
       })
       .catch(next)
   }
 
   static findOne(req, res, next) {
     let id = req.params.id
+    let payload = {
+      IdMahasiswa: null,
+      nama: "",
+      mata_kuliah: "",
+      nilai: 0
+    }
     DataNilai.findOne({
       where: {
         id: id
-      },
-      include: [Mahasiswa, MataKuliah]
+      }
     })
       .then(data => {
-        res.status(200).json(data)
+        payload.nilai = data.nilai
+        payload.IdMahasiswa = data.MahasiswaId
+        return MataKuliah.findByPk(data.MataKuliahId)
+      })
+      .then(data => {
+        payload.mata_kuliah = data.name
+        return Mahasiswa.findByPk(payload.IdMahasiswa)
+      })
+      .then(data => {
+        payload.nama = data.nama
+        res.status(200).json(payload)
       })
       .catch(next)
   }

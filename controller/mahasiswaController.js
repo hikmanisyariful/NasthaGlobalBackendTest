@@ -1,32 +1,69 @@
 const { Mahasiswa } = require("../models")
+const fs = require('fs')
 
 class MahasiswaController {
-  static create(req, res, next) {
-    let payload = {
-      nama: req.body.nama,
-      alamat: req.body.alamat
-    }
-    Mahasiswa.create(payload)
-      .then(data => {
-        res.status(201).json(data)
-      })
-      .catch(next)
-  }
 
-  static update(req, res, next) {
-    let id = req.params.id
-    let payload = {
-      nama: req.body.nama,
-      alamat: req.body.alamat
+  static recovery(req, res, next) {
+
+    const data = fs.readFileSync('./dataMahasiswa.csv', 'utf8')
+    let data1 = data.split('\n');
+    let data_baru = []
+    for (let i = 1; i < data1.length; i++) {
+      let datax = data1[i].split(';');
+      let dataPerson = {
+        id: +datax[0],
+        nama: datax[1],
+        alamat: datax[2],
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
+      data_baru.push(dataPerson)
     }
-    Mahasiswa.update(payload, {
-      where: {
-        id: id
-      },
-      returning: true
-    })
+
+    let data_from_database = []
+
+    let id_sama = []
+    let data_mahasiswa_baru
+    Mahasiswa.findAll()
       .then(data => {
-        res.status(200).json(data)
+        data_from_database.push(data)
+
+        for (let i = 0; i < data.length; i++) {
+          for (let j = 0; j < data_baru.length; j++) {
+            if (data[i].id === data_baru[j].id) {
+              id_sama.push(data_baru[j])
+            }
+          }
+        }
+
+        data_mahasiswa_baru = data_baru.filter(data => !id_sama.includes(data))
+
+        let promises = []
+        id_sama.forEach(mahasiswa => {
+          const updatedData = Mahasiswa.update(mahasiswa, {
+            where: {
+              id: mahasiswa.id
+            }
+          })
+          promises.push(updatedData)
+        })
+        return Promise.all(promises)
+      })
+      .then(data => {
+        let promises = []
+        data_mahasiswa_baru.forEach(mahasiswa => {
+          const createData = Mahasiswa.create({
+            nama: mahasiswa.nama,
+            alamat: mahasiswa.alamat
+          })
+          promises.push(createData)
+        })
+        return Promise.all(promises)
+      })
+      .then(data => {
+        res.status(201).json({
+          message: "recovery database is successfully"
+        })
       })
       .catch(next)
   }

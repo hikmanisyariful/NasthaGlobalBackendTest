@@ -9,7 +9,7 @@ router.get('/', function (req, res) {
 })
 
 router.use('/datanilai', datanilai)
-router.use('/mataKuliah', mataKuliah)
+router.use('/average', mataKuliah)
 router.use('/mahasiswa', mahasiswa)
 
 module.exports = router
